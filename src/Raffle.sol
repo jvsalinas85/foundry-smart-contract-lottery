@@ -24,6 +24,8 @@
 
 pragma solidity 0.8.19;
 
+import {VRFConsumerBaseV2Plus} from "@chainlink/contracts/src/v0.8/vrf/dev/VRFConsumerBaseV2Plus.sol";
+
 /**
  * @title A sample raffle contract
  * @author Jesus Valencia
@@ -31,7 +33,7 @@ pragma solidity 0.8.19;
  * @dev This implements the Chainlink VRF Version 2.5
  */
 
-contract Raffle {
+contract Raffle is VRFConsumerBaseV2Plus {
     /* Errors */
     error Raffle__SendMoreToEnterRaffle(); //contract__error
 
@@ -45,7 +47,11 @@ contract Raffle {
     //Events
     event RaffleEntered(address indexed player);
 
-    constructor(uint256 entranceFee, uint256 interval) {
+    constructor(
+        uint256 entranceFee,
+        uint256 interval,
+        address vrfCoordinator
+    ) VRFConsumerBaseV2Plus(vrfCoordinator) {
         i_entranceFee = entranceFee;
         i_interval = interval;
         s_lastTimeStamp = block.timestamp;
@@ -69,7 +75,28 @@ contract Raffle {
         if ((block.timestamp - s_lastTimeStamp) < i_interval) {
             revert();
         }
+        //Get our random  2.5
+        //Request RNG
+        //Get RNG
+        // requestId = s_vrfCoordinator.requestRandomWords(
+        //     VRFV2PlusClient.RandomWordsRequest({
+        //         keyHash: s_keyHash,
+        //         subId: s_subscriptionId,
+        //         requestConfirmations: requestConfirmations,
+        //         callbackGasLimit: callbackGasLimit,
+        //         numWords: numWords,
+        //         extraArgs: VRFV2PlusClient._argsToBytes(
+        //             // Set nativePayment to true to pay for VRF requests with Sepolia ETH instead of LINK
+        //             VRFV2PlusClient.ExtraArgsV1({nativePayment: false})
+        //         )
+        //     })
+        // );
     }
+
+    function fulfillRandomWords(
+        uint256 requestId,
+        uint256[] calldata randomWords
+    ) internal virtual override {}
 
     //Getter functions
     function getEntranceFee() external view returns (uint256) {
