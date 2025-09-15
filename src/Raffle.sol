@@ -61,9 +61,11 @@ contract Raffle is VRFConsumerBaseV2Plus {
 
     //Events
     event RaffleEntered(address indexed player);
+    event WinnerPicked(address indexed winner);
 
     constructor(
         uint256 entranceFee,
+        // @dev The time interval in seconds for picking a winner
         uint256 interval,
         address vrfCoordinator,
         bytes32 gasLane, //key_hash
@@ -99,6 +101,7 @@ contract Raffle is VRFConsumerBaseV2Plus {
     //3. Be Automatically called
     function pickWinner() external {
         //check to see if enough time has passed
+        // Checks
         if ((block.timestamp - s_lastTimeStamp) < i_interval) {
             revert();
         }
@@ -125,10 +128,16 @@ contract Raffle is VRFConsumerBaseV2Plus {
         uint256 requestId,
         uint256[] calldata randomWords
     ) internal virtual override {
+        // Effects (Internal Contract State Changes)
         uint256 indexOfWinner = randomWords[0] % s_players.length;
         address payable recentWinner = s_players[indexOfWinner];
         s_recentWinner = recentWinner;
         s_raffleState = RaffleState.OPEN;
+        s_players = new address payable[](0);
+        s_lastTimeStamp = block.timestamp;
+        emit WinnerPicked(s_recentWinner);
+
+        // Interactions (External Contract State Changes)
         (bool success, ) = recentWinner.call{value: address(this).balance}("");
         if (!success) {
             revert Raffle__TransferFailed();
